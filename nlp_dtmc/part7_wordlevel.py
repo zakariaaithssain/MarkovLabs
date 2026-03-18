@@ -8,6 +8,8 @@ Classes: IIA, IDF, 2SCL (2025-2026) - Optional
 from collections import Counter, defaultdict
 import random
 
+from part2_preprocessing import preprocess
+
 
 def tokenize(text: str, max_vocab_size: int = 1000) -> list:
     """
@@ -27,7 +29,15 @@ def tokenize(text: str, max_vocab_size: int = 1000) -> list:
         List of tokens
     """
     # YOUR CODE HERE
-    pass
+    text = preprocess(text).replace("^", "<START>").replace("$", "<END>")
+    words_list = text.split()
+
+    count = Counter(words_list)
+    vocab = set(sorted(count.keys(), key=lambda token: count[token], reverse=True)[:max_vocab_size])
+
+    return [word if word in vocab else "<UNK>" for word in words_list]
+
+
 
 
 def build_word_model(tokens: list) -> dict:
@@ -38,7 +48,17 @@ def build_word_model(tokens: list) -> dict:
     Sparsity is a major issue - most word pairs never seen.
     """
     # YOUR CODE HERE
-    pass
+    counts = defaultdict(lambda: defaultdict(int))
+
+    for current, next_word in zip(tokens, tokens[1:]):
+        counts[current][next_word] += 1
+
+    probs = {}
+    for current, next_counts in counts.items():
+        total = sum(next_counts.values())
+        probs[current] = {word: count / total for word, count in next_counts.items()}
+
+    return probs
 
 
 def generate_words(model: dict, max_words: int = 50) -> str:
@@ -49,7 +69,23 @@ def generate_words(model: dict, max_words: int = 50) -> str:
     due to limited vocabulary and sparse transitions.
     """
     # YOUR CODE HERE
-    pass
+    current = "<START>"
+    words = []
+    for _ in range(max_words):
+        if current not in model:
+            break
+
+        next_probs = model[current]
+        chars  = list(next_probs.keys())
+        weights = list(next_probs.values())
+        current = random.choices(chars, weights=weights, k=1)[0]
+
+        if current == "<END>":
+            break
+
+        words.append(current)
+
+    return " ".join(words)
 
 
 def main():
