@@ -6,8 +6,10 @@ Classes: IIA, IDF, 2SCL (2025-2026)
 """
 
 from collections import defaultdict, Counter
+from itertools import product
 from typing import Tuple, Optional
 from part2_preprocessing import preprocess, VOCAB
+from part5_generation import sample_from_distribution
 import random
 
 def preprocess_for_order_n(text: str, order: int) -> str:
@@ -25,7 +27,7 @@ def preprocess_for_order_n(text: str, order: int) -> str:
         Preprocessed text with multiple start markers
     """
     # YOUR CODE HERE
-    pass
+    return "^" * order + text
 
 
 def build_high_order_model(text: str, order: int = 3) -> dict:
@@ -48,9 +50,29 @@ def build_high_order_model(text: str, order: int = 3) -> dict:
     Returns:
         Dictionary: {history_tuple: {next_char: probability}}
     """
+    
     # YOUR CODE HERE
-    pass
-
+    counts = defaultdict(Counter)
+    for sym in product(VOCAB, repeat=order): 
+        if sym in text: 
+            count_next = Counter({})
+            for i in range(len(text)-1): 
+                if text[i: i + order] == sym: 
+                    next_char = text[i + order]
+                    count_next.update({next_char: 1})
+            
+            counts[sym] = count_next
+        
+    probs = {}
+    for current in product(VOCAB, repeat= order): 
+        next_probs = {}
+        for next_char in VOCAB: 
+            laplace = (counts[current][next_char] + 1) / (counts[current].total() + len(VOCAB))
+            next_probs[next_char] = laplace
+        
+        probs[current] = next_probs
+    
+    return probs
 
 def generate_high_order(model: dict, order: int = 3, 
                         max_length: int = 200, top_k: Optional[int] = None,
@@ -77,7 +99,17 @@ def generate_high_order(model: dict, order: int = 3,
         random.seed(seed)
     
     # YOUR CODE HERE
-    pass
+    result = ""
+    current_char= "^" * order
+    while max_length > 0 : 
+        prob_dist = model[current_char]
+        next_char = sample_from_distribution(prob_dist, top_k)
+        if next_char == "$": 
+         break
+
+        result+= next_char
+        current_char = current_char[1:] + next_char
+        max_length -= 1
 
 
 def compare_orders(train_text: str, test_text: str, max_order: int = 5):
