@@ -30,10 +30,14 @@ def compute_log_likelihood(model: dict, test_text: str) -> float:
     """
     # Preprocess test text
     text = preprocess(test_text)
-    
-    # YOUR CODE HERE
-    pass
+    log_likelihood = 0
+    n = len(text)
+    for i in range(n-1):
+        curr = text[i]
+        nxt = text[i+1]
+        log_likelihood += math.log(model[curr][nxt])
 
+    return log_likelihood
 
 def compute_perplexity(log_likelihood: float, n_transitions: int) -> float:
     """
@@ -46,8 +50,7 @@ def compute_perplexity(log_likelihood: float, n_transitions: int) -> float:
     - Random guessing would give perplexity = |V| = 29
     - Perfect prediction would give perplexity = 1
     """
-    # YOUR CODE HERE
-    pass
+    return math.exp((-log_likelihood/ n_transitions))
 
 
 def evaluate_model(model: dict, train_text: str, test_same: str, test_diff: str):
