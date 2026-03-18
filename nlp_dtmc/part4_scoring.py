@@ -30,6 +30,7 @@ def compute_log_likelihood(model: dict, test_text: str) -> float:
     """
     # Preprocess test text
     text = preprocess(test_text)
+    # YOUR CODE HERE
     log_likelihood = 0
     n = len(text)
     for i in range(n-1):
@@ -50,6 +51,7 @@ def compute_perplexity(log_likelihood: float, n_transitions: int) -> float:
     - Random guessing would give perplexity = |V| = 29
     - Perfect prediction would give perplexity = 1
     """
+    # YOUR CODE HERE
     return math.exp((-log_likelihood/ n_transitions))
 
 

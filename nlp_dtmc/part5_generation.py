@@ -7,7 +7,9 @@ Classes: IIA, IDF, 2SCL (2025-2026)
 
 import random
 from typing import Optional, Dict
+from collections import Counter
 from part2_preprocessing import VOCAB
+
 
 
 def sample_from_distribution(prob_dist: Dict[str, float], top_k: Optional[int] = None) -> str:
@@ -26,7 +28,19 @@ def sample_from_distribution(prob_dist: Dict[str, float], top_k: Optional[int] =
         Sampled character
     """
     # YOUR CODE HERE
-    pass
+    if top_k: 
+        kept_prob = dict(
+            sorted(prob_dist.items(),
+                    key= lambda x: x[1],
+                    reverse=True)[:top_k]
+                      )
+        #normalization
+        total = sum(kept_prob.values())
+        prob_dist = {char : (prob/ total) for char, prob in kept_prob.items()}
+    
+    return random.choices(population=list(prob_dist.keys()),
+                           weights= list(prob_dist.values()),
+                            k=1)[0]
 
 
 def generate_text(model: dict, max_length: int = 200, 
@@ -56,8 +70,17 @@ def generate_text(model: dict, max_length: int = 200,
         random.seed(seed)
     
     # YOUR CODE HERE
-    pass
+    result = ""
+    current_char= "^"
+    while max_length > 0 : 
+        prob_dist = model[current_char]
+        next_char = sample_from_distribution(prob_dist, top_k)
+        if next_char == "$": 
+         break
 
+        result+= next_char
+        current_char = next_char
+        max_length -= 1
 
 def compare_sampling_strategies(model: dict, num_samples: int = 3):
     """
