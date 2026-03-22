@@ -2,8 +2,8 @@
 import numpy as np
 
 
-# ─── DTMC ────────────────────────────────────────────────────────────────────
-
+ # FOR DTMC  
+ 
 def dtmc_stationnaire(P):
     """
     Distribution quasi-stationnaire pour une DTMC absorbante.
@@ -17,7 +17,7 @@ def dtmc_stationnaire(P):
     Q = P[np.ix_(transients, transients)]
     t = len(transients)
 
-    # Resoudre pi Q = pi, sum(pi) = 1
+    #resoudre le systeme stationnaire
     A = (Q.T - np.eye(t))
     A[-1, :] = 1.0
     b = np.zeros(t)
@@ -26,38 +26,24 @@ def dtmc_stationnaire(P):
     pi_t = np.clip(pi_t, 0, None)
     pi_t /= pi_t.sum()
 
-    # Reconstruire pi sur tous les etats (absorbants = 0)
+    #reconstuire pi sur tous les etats (absorbants = 0)
     pi = np.zeros(n)
     for i, idx in enumerate(transients):
         pi[idx] = pi_t[i]
 
-    return pi, transients, absorbants
+    return pi
 
 
-def dtmc_fondamentale(P):
-    """Matrice fondamentale N = (I - Q)^{-1} et probabilites d'absorption B = N R_bloc."""
-    n = P.shape[0]
-    absorbants = [i for i in range(n) if P[i, i] == 1.0]
-    transients = [i for i in range(n) if i not in absorbants]
-
-    ordre = transients + absorbants
-    P_can = P[np.ix_(ordre, ordre)]
-    t = len(transients)
-    Q = P_can[:t, :t]
-    R_bloc = P_can[:t, t:]
-
-    N = np.linalg.inv(np.eye(t) - Q)
-    B = N @ R_bloc
-    return N, B, transients, absorbants
 
 
 def dtmc_production(P, R, T_heures=8.0, periode=1.0):
     """Production journaliere DTMC = (T/periode) * sum(pi_i * R_i)."""
-    pi, _, _ = dtmc_stationnaire(P)
+    pi = dtmc_stationnaire(P)
     return (T_heures / periode) * np.dot(pi, R)
 
 
-# ─── CTMC ────────────────────────────────────────────────────────────────────
+# FOR CTMC 
+
 
 def ctmc_depuis_lambdas(lambdas, n):
     """Construit la matrice Q depuis un dict {(i,j): taux}."""
